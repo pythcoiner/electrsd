@@ -32,6 +32,7 @@ pub use bitcoind;
 pub use electrum_client;
 
 pub use error::Error;
+pub use log;
 pub use which;
 
 /// Electrs configuration parameters, implements a convenient [Default] for most common use.
@@ -258,7 +259,8 @@ impl ElectrsD {
             None
         };
 
-        let log_level = format!("--log-filters {}", conf.log_level);
+        args.push("--log-filters");
+        let log_level = conf.log_level.to_string();
         args.push(&log_level);
 
         debug!("args: {:?}", args);
@@ -349,6 +351,10 @@ impl ElectrsD {
             }
             DataDir::Temporary(_) => Ok(self.process.kill()?),
         }
+    }
+
+    pub fn clear_logs(&mut self) {
+        while self.logs.try_recv().is_ok() {}
     }
 
     #[cfg(not(target_os = "windows"))]
